@@ -14,7 +14,82 @@
   const TIMELINE_START = 8 * 60;
   const TIMELINE_END = 19 * 60;
   const PIXELS_PER_MINUTE = 1;
-  const ORIGINAL_SCHEDULE = JSON.parse(JSON.stringify(window.SCHEDULE || { group: 'ИСр24-1', days: [] }));
+  // Встроенный резервный срез гарантирует, что пары отобразятся даже если
+  // отдельный data/schedule.js не был добавлен в репозиторий.
+  const EMBEDDED_SCHEDULE = {"group":"ИСр24-1","weekLabel":"16–22 ноября 2026","days":[{"weekday":"Понедельник","date":"2026-11-16","short":"Пн","lessons":[{"id":"mon-k","badge":"К","start":"08:30","end":"09:00","subject":"Разговоры о важном","teacher":"Шевченко П.С.","room":"203","color":"#78A6C8"},{"id":"mon-1","badge":"1","start":"09:10","end":"10:30","subject":"Графический дизайн и мультимедиа","teacher":"Морылёв К.С.","room":"403","color":"#C4B478"},{"id":"mon-2","badge":"2","start":"10:40","end":"12:00","subject":"Графический дизайн и мультимедиа","teacher":"Морылёв К.С.","room":"403","color":"#C4B478"}]},{"weekday":"Вторник","date":"2026-11-17","short":"Вт","lessons":[{"id":"tue-1","badge":"1","start":"08:30","end":"10:00","subject":"Безопасность жизнедеятельности","teacher":"Котельников А.М.","room":"201","color":"#8E9ACB"},{"id":"tue-2","badge":"2","start":"10:10","end":"11:40","subject":"Безопасность жизнедеятельности","teacher":"Котельников А.М.","room":"201","color":"#8E9ACB"}]},{"weekday":"Среда","date":"2026-11-18","short":"Ср","lessons":[{"id":"wed-1","badge":"1","start":"08:30","end":"10:00","subject":"Графический дизайн и мультимедиа","teacher":"Морылёв К.С.","room":"403","color":"#C4B478"},{"id":"wed-2","badge":"2","start":"10:10","end":"11:40","subject":"Экономика отрасли","teacher":"Брускина Н.И.","room":"109м","color":"#C478C2"},{"id":"wed-3","badge":"3","start":"12:10","end":"13:40","subject":"Физическая культура","teacher":"Чертищев В.А.","room":"Сп. зал 3","color":"#78B5C4"}]},{"weekday":"Четверг","date":"2026-11-19","short":"Чт","lessons":[{"id":"thu-1","badge":"1","start":"08:30","end":"10:00","subject":"Проектирование и разработка веб-приложений","teacher":"Громов Р.И.","room":null,"color":"#7C9BCE"},{"id":"thu-2","badge":"2","start":"10:10","end":"11:40","subject":"Проектирование и разработка веб-приложений","teacher":"Громов Р.И.","room":null,"color":"#7C9BCE"},{"id":"thu-3","badge":"3","start":"12:10","end":"13:40","subject":"Проектирование и разработка веб-приложений","teacher":"Громов Р.И.","room":null,"color":"#7C9BCE"},{"id":"thu-4","badge":"4","start":"13:50","end":"15:20","subject":"Иностранный язык в профессиональной деятельности","teacher":"Краснощекова В.В.","room":"112","color":"#D5A06F"}]},{"weekday":"Пятница","date":"2026-11-20","short":"Пт","lessons":[{"id":"fri-4","badge":"4","start":"13:50","end":"15:20","subject":"Проектирование и разработка веб-приложений","teacher":"Громов Р.И.","room":null,"color":"#7C9BCE"},{"id":"fri-5","badge":"5","start":"15:30","end":"17:00","subject":"Проектирование и разработка веб-приложений","teacher":"Громов Р.И.","room":null,"color":"#7C9BCE"},{"id":"fri-6","badge":"6","start":"17:10","end":"18:40","subject":"Проектирование и разработка веб-приложений","teacher":"Громов Р.И.","room":null,"color":"#7C9BCE"}]},{"weekday":"Суббота","date":"2026-11-21","short":"Сб","lessons":[{"id":"sat-1","badge":"1","start":"08:30","end":"10:00","subject":"Учебная практика 08","teacher":"Морылёв К.С.","room":"403","color":"#7BAA91"},{"id":"sat-2","badge":"2","start":"10:10","end":"11:40","subject":"Учебная практика 08","teacher":"Морылёв К.С.","room":"403","color":"#7BAA91"},{"id":"sat-3","badge":"3","start":"12:10","end":"13:40","subject":"Учебная практика 08","teacher":"Морылёв К.С.","room":"403","color":"#7BAA91"}]},{"weekday":"Воскресенье","date":"2026-11-22","short":"Вс","lessons":[]}]};
+
+  function normaliseDateValue(value, fallbackDate) {
+    const raw = String(value || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const match = raw.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+    if (match) return `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+    return fallbackDate;
+  }
+  function normaliseTimeValue(value) {
+    const match = String(value || '').match(/(\d{1,2}):(\d{2})/);
+    return match ? `${match[1].padStart(2, '0')}:${match[2]}` : '';
+  }
+  function normaliseScheduleSource(source) {
+    if (!source || typeof source !== 'object') return null;
+    const rawDays = source.days || source.schedule || source.data?.days;
+    if (!rawDays) return null;
+    let dayEntries;
+    if (Array.isArray(rawDays)) dayEntries = rawDays.map((day, index) => [day.date || day.day || index, day]);
+    else if (typeof rawDays === 'object') dayEntries = Object.entries(rawDays);
+    else return null;
+    const firstDate = normaliseDateValue(dayEntries[0]?.[1]?.date || dayEntries[0]?.[0], '2026-11-16');
+    const first = new Date(`${firstDate}T12:00:00`);
+    const monday = new Date(first);
+    monday.setDate(first.getDate() - ((first.getDay() + 6) % 7));
+    const dateForIndex = index => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    };
+    const weekdays = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+    const shorts = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    const dateFromKey = value => normaliseDateValue(value, '');
+    const days = dayEntries.map(([key, day], index) => {
+      const date = normaliseDateValue(day?.date || key, dateForIndex(index));
+      const parsed = new Date(`${date}T12:00:00`);
+      const dayIndex = (parsed.getDay() + 6) % 7;
+      const lessonsRaw = Array.isArray(day?.lessons) ? day.lessons : (Array.isArray(day?.classes) ? day.classes : []);
+      const lessons = lessonsRaw.map((lesson, lessonIndex) => {
+        const bells = String(lesson.bells || lesson.time || lesson.pairTime || '');
+        const times = bells.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/);
+        const start = normaliseTimeValue(lesson.start || lesson.startTime || times?.[1]);
+        const end = normaliseTimeValue(lesson.end || lesson.endTime || times?.[2]);
+        const subject = lesson.subject || lesson.name || lesson.title || lesson.z1 || 'Занятие';
+        const roomValue = lesson.room ?? lesson.classroom ?? lesson.audience ?? lesson.z2 ?? null;
+        return {
+          id: String(lesson.id || `${date}-${lessonIndex+1}`),
+          badge: String(lesson.badge || lesson.number || lesson.n || lessonIndex + 1),
+          start: start || '08:30', end: end || '10:00',
+          subject: String(subject),
+          teacher: String(lesson.teacher || lesson.lecturer || lesson.z3 || ''),
+          room: roomValue === '' || roomValue === undefined ? null : roomValue,
+          color: lesson.color || '#7C9BCE'
+        };
+      }).filter(lesson => lesson.start && lesson.end)
+        .sort((a,b) => a.start.localeCompare(b.start));
+      return { weekday: day?.weekday || day?.dayName || weekdays[dayIndex], date, short: day?.short || shorts[dayIndex], lessons };
+    });
+    // Дополняем неделю пустыми днями и сортируем по дате, чтобы календарная сетка
+    // всегда имела одинаковую структуру от понедельника до воскресенья.
+    const byDate = new Map(days.map(day => [day.date, day]));
+    return {
+      group: source.group || source.head || source.name || 'ИСр24-1',
+      weekLabel: source.weekLabel || '',
+      days: Array.from({length:7}, (_, index) => {
+        const date = dateForIndex(index);
+        return byDate.get(date) || { weekday: weekdays[index], date, short: shorts[index], lessons: [] };
+      })
+    };
+  }
+  const loadedSource = normaliseScheduleSource(window.SCHEDULE);
+  const ORIGINAL_SCHEDULE = JSON.parse(JSON.stringify(
+    loadedSource && loadedSource.days.some(day => day.lessons.length) ? loadedSource : EMBEDDED_SCHEDULE
+  ));
   const safeStorage = {
     get(key, fallback) {
       try { const value = localStorage.getItem(key); return value === null ? fallback : value; }
@@ -114,12 +189,13 @@
   let toastTimer = null;
 
   function loadGroups() {
+    const makeSeed = () => JSON.parse(JSON.stringify(initialGroup));
     try {
       const stored = safeStorage.get(KEYS.groups, null);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length) {
-          return parsed.map((group, index) => ({
+        if (Array.isArray(parsed)) {
+          const restored = parsed.map((group, index) => ({
             id: group.id || `group-${index}`,
             name: group.name || `Группа ${index + 1}`,
             color: group.color || '#7588e7',
@@ -127,10 +203,26 @@
               [dateKey(defaultWeekStart)]: normaliseWeek(group.days || [], defaultWeekStart)
             }
           }));
+          // Миграция старой/пустой localStorage: не даём пустой сохранённой группе
+          // затереть учебный срез, который уже входит в сборку.
+          let seed = restored.find(group => group.id === initialGroup.id) ||
+            restored.find(group => group.name === initialGroup.name);
+          if (!seed) {
+            restored.unshift(makeSeed());
+          } else {
+            const savedLessonCount = Object.values(seed.weeks || {}).reduce((sum, week) => {
+              return sum + (Array.isArray(week) ? week.reduce((daySum, day) => daySum + (Array.isArray(day.lessons) ? day.lessons.length : 0), 0) : 0);
+            }, 0);
+            const seedLessonCount = initialGroup.weeks[dateKey(defaultWeekStart)].reduce((sum, day) => sum + day.lessons.length, 0);
+            if (savedLessonCount === 0 && seedLessonCount > 0) {
+              seed.weeks[dateKey(defaultWeekStart)] = JSON.parse(JSON.stringify(initialGroup.weeks[dateKey(defaultWeekStart)]));
+            }
+          }
+          return restored.length ? restored : [makeSeed()];
         }
       }
     } catch (_) { /* повреждённое значение заменяем начальным набором */ }
-    return [JSON.parse(JSON.stringify(initialGroup))];
+    return [makeSeed()];
   }
   function saveGroups() { safeStorage.set(KEYS.groups, JSON.stringify(groups)); }
   function activeGroup() { return groups.find(group => group.id === activeGroupId) || groups[0]; }
@@ -198,7 +290,7 @@
     $('agenda-date').textContent = date ? formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
     if (!day || !Array.isArray(day.lessons) || !day.lessons.length) {
-      $('app').innerHTML = `<h2 class="day-title">${escapeHtml(day ? day.weekday : DAY_NAMES[activeDay])}</h2><div class="empty-state"><strong>Пар нет</strong>На этот день занятий не запланировано.<br>Можно спокойно заняться своими делами.</div>`;
+      $('app').innerHTML = `<h2 class="day-title">${escapeHtml(day ? day.weekday : DAY_NAMES[activeDay])}</h2><div class="empty-state"><strong>${escapeHtml(activeGroup().name)} · пар нет</strong>${activeGroup().name === ORIGINAL_SCHEDULE.group ? 'На этот день занятий не запланировано.' : `В опубликованном учебном срезе пока нет данных для группы ${escapeHtml(activeGroup().name)}. Сейчас загружена группа ${escapeHtml(ORIGINAL_SCHEDULE.group)}.`}<br>Выбери доступную группу или добавь личное занятие.</div>`;
       $('day-lesson-count').textContent = '0 занятий';
       $('day-duration').textContent = '0 мин';
       return;
@@ -602,7 +694,7 @@
   }
   function tryFetchJson() {
     if (!('fetch' in window) || window.location.protocol === 'file:') {
-      $('data-status').textContent = 'Встроенные данные · offline';
+      $('data-status').textContent = 'Учебный срез · встроенная копия';
       return;
     }
     const dataPath = window.location.pathname.includes('/steps/') ? '../../data/schedule.json' : 'data/schedule.json';
@@ -610,17 +702,20 @@
       if (!response.ok) throw new Error('Не удалось получить JSON');
       return response.json();
     }).then(data => {
-      if (!data || !Array.isArray(data.days)) throw new Error('Неверный формат JSON');
-      $('data-status').textContent = 'JSON загружен';
-      // Используем JSON только для исходной учебной группы и не затираем локальные изменения.
-      const seed = groups.find(group => group.id === 'group-isr24-1');
-      if (seed && !safeStorage.get(KEYS.groups, null)) {
-        seed.weeks[dateKey(defaultWeekStart)] = normaliseWeek(data.days, defaultWeekStart);
+      const normalised = normaliseScheduleSource(data);
+      if (!normalised || !normalised.days.some(day => day.lessons.length)) throw new Error('В JSON нет занятий или формат не распознан');
+      $('data-status').textContent = `Данные загружены · ${normalised.group}`;
+      const seed = groups.find(group => group.id === initialGroup.id || group.name === initialGroup.name);
+      if (!seed) return;
+      const key = dateKey(defaultWeekStart);
+      const currentCount = Object.values(seed.weeks || {}).reduce((sum, week) => sum + (Array.isArray(week) ? week.reduce((n, day) => n + (day.lessons || []).length, 0) : 0), 0);
+      if (currentCount === 0) {
+        seed.weeks[key] = normaliseWeek(normalised.days, defaultWeekStart);
         saveGroups();
-        if (activeGroupId === seed.id && dateKey(selectedWeekStart) === dateKey(defaultWeekStart)) renderAll();
+        if (activeGroupId === seed.id && dateKey(selectedWeekStart) === key) renderAll();
       }
     }).catch(() => {
-      $('data-status').textContent = 'Локальные данные · резерв';
+      $('data-status').textContent = 'Учебный срез · встроенная копия';
     });
   }
 
@@ -724,6 +819,7 @@
   if (!groups.some(group => group.id === activeGroupId)) activeGroupId = groups[0].id;
   initTheme();
   renderAll();
+  $('data-status').textContent = `Учебный срез · ${ORIGINAL_SCHEDULE.group}`;
   updateLiveDate();
   setInterval(() => {
     updateLiveDate();
