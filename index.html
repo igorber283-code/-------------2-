@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta name="description" content="Удобное расписание занятий КИТиС: календарь недели, группы и таймер пары.">
+  <title>КИТиС — расписание</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="data/schedule.js" onerror="this.onerror=null;this.src='data/demo-schedule.js'"></script>
+  <script defer src="assets/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" aria-label="КИТиС — главная">
+        <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="22" rx="6" fill="currentColor" opacity=".16"/><path d="M10 4v5M22 4v5M5 12h22M10 17h4m-4 5h4m4-5h4m-4 5h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="brand-copy"><strong>КИТиС</strong><small>расписание студентов</small></span>
+      </a>
+
+      <div class="sidebar-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+      <nav class="main-nav" aria-label="Основная навигация">
+        <a class="nav-link active" href="#calendar" data-nav="calendar"><span class="nav-icon">▦</span><span>Расписание</span><span class="nav-pill">неделя</span></a>
+        <a class="nav-link" href="#groups" data-nav="groups"><span class="nav-icon">◉</span><span>Мои группы</span></a>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-heading" id="groups"><span>МОИ ГРУППЫ</span><button class="icon-button tiny" id="add-group" type="button" title="Добавить группу" aria-label="Добавить группу">＋</button></div>
+      <div class="group-list" id="group-list"></div>
+
+      <div class="sidebar-bottom sidebar-settings">
+        <button class="settings-sidebar-button" id="settings-open-sidebar" type="button"><span class="settings-gear">⚙</span><span><strong>Внешний вид</strong><small>Цвета и тема</small></span><span class="quick-arrow">→</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content" id="calendar">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="mobile-menu" aria-label="Открыть меню" type="button">☰</button>
+        <div class="breadcrumbs"><span>КИТиС</span><span class="crumb-sep">/</span><strong>Расписание</strong></div>
+        <div class="topbar-actions">
+          <label class="top-search" aria-label="Поиск по расписанию"><span>⌕</span><input id="schedule-search" type="search" placeholder="Поиск занятий…"></label>
+          <div class="live-clock"><span class="live-dot"></span><span id="live-date">Загружаем дату…</span></div>
+          <button class="icon-button" id="theme-toggle" type="button" title="Сменить тему" aria-label="Сменить тему"><span id="theme-icon">☾</span></button>
+          <button class="icon-button settings-trigger" type="button" id="settings-open" title="Настройки оформления" aria-label="Настройки оформления">⚙</button>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <section class="page-heading">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> КАЛЕНДАРЬ ГРУППЫ</div>
+            <h1>Расписание занятий</h1>
+            <p class="page-subtitle">Всё расписание группы — в одном удобном календаре.</p>
+          </div>
+          <div class="heading-actions">
+            <label class="group-select-wrap" for="group-select"><span class="select-label">ГРУППА</span><select id="group-select" aria-label="Выбрать группу"></select></label>
+            <button class="primary-button" id="open-add-lesson" type="button"><span>＋</span> Добавить своё занятие</button>
+          </div>
+        </section>
+
+        <section class="stats-row schedule-stats" aria-label="Сводка расписания">
+          <article class="stat-card stat-card-main">
+            <div class="stat-top"><span>Занятий на неделе</span><span class="stat-icon blue">▦</span></div>
+            <div class="stat-value" id="stat-lessons">—</div>
+            <div class="stat-foot"><span class="stat-foot-dot"></span><span id="stat-date-range">16–22 ноября</span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span>Общая длительность</span><span class="stat-icon violet">◷</span></div>
+            <div class="stat-value"><span id="stat-hours">—</span><small>ч</small></div>
+            <div class="stat-foot muted">По расписанию группы</div>
+          </article>
+        </section>
+
+        <section class="timer-banner" aria-label="Текущая пара и таймер">
+          <div class="timer-decoration"><span></span><span></span><span></span></div>
+          <div class="timer-main">
+            <div class="timer-kicker"><span class="pulse-dot"></span><span id="timer-state">СЕЙЧАС</span></div>
+            <h2 id="timer-title">Проверяем расписание…</h2>
+            <p id="timer-description">Текущая пара и ближайшее занятие появятся здесь.</p>
+          </div>
+          <div class="timer-countdown">
+            <span class="countdown-label" id="timer-label">ДО КОНЦА ПАРЫ</span>
+            <div class="countdown-value" id="timer">—</div>
+            <div class="timer-progress"><span id="timer-progress"></span></div>
+          </div>
+          <div class="timer-next" id="next-lesson-card"><span class="next-label">ДАЛЕЕ ПО ПЛАНУ</span><strong id="next-lesson-title">—</strong><small id="next-lesson-time">—</small></div>
+        </section>
+
+        <section class="workspace-grid">
+          <div class="calendar-panel panel">
+            <div class="panel-header calendar-header">
+              <div><h2>Календарь недели</h2><p id="week-label">16–22 ноября 2026</p></div>
+              <div class="calendar-controls">
+                <div class="view-switch" role="group" aria-label="Вид календаря"><button type="button" class="view-button active" data-view="week">Неделя</button><button type="button" class="view-button" data-view="day">День</button></div>
+                <button class="icon-button" id="export-ics" type="button" title="Экспорт расписания в календарь" aria-label="Экспортировать расписание">⇩</button>
+              </div>
+            </div>
+            <div class="week-nav-row">
+              <div class="week-days" id="week-days" role="group" aria-label="Выбрать день">
+                <button class="day-btn active" type="button" data-day="0"><span class="day-name">Пн</span><strong>16</strong></button>
+                <button class="day-btn" type="button" data-day="1"><span class="day-name">Вт</span><strong>17</strong></button>
+                <button class="day-btn" type="button" data-day="2"><span class="day-name">Ср</span><strong>18</strong></button>
+                <button class="day-btn" type="button" data-day="3"><span class="day-name">Чт</span><strong>19</strong></button>
+                <button class="day-btn" type="button" data-day="4"><span class="day-name">Пт</span><strong>20</strong></button>
+                <button class="day-btn" type="button" data-day="5"><span class="day-name">Сб</span><strong>21</strong></button>
+                <button class="day-btn" type="button" data-day="6"><span class="day-name">Вс</span><strong>22</strong></button>
+              </div>
+              <div class="week-arrows"><button class="icon-button tiny" type="button" id="week-prev" aria-label="Предыдущая неделя">‹</button><button class="today-button" type="button" id="go-today">Сегодня</button><button class="icon-button tiny" type="button" id="week-next" aria-label="Следующая неделя">›</button></div>
+            </div>
+            <div class="calendar-legend"><span><i class="legend-dot dot-live"></i> Сейчас</span><span><i class="legend-dot dot-remote"></i> Дистант</span><span><i class="legend-dot dot-done"></i> Завершилось</span><span class="data-note" id="data-status">Источник расписания</span></div>
+            <div class="calendar-scroll" id="calendar-scroll">
+              <div class="calendar-grid" id="calendar-grid">
+                <div class="time-column" id="time-column"></div>
+                <div class="day-columns" id="day-columns"></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="day-panel panel">
+            <div class="panel-header day-panel-heading"><div><div class="day-panel-kicker">ПЛАН НА ДЕНЬ</div><h2 id="agenda-heading">Понедельник</h2><p id="agenda-date">16 ноября 2026</p></div><button class="favorite-button" id="fav-btn" type="button" aria-pressed="false" title="Добавить группу в избранное"><span>☆</span></button></div>
+            <div class="day-summary"><div><strong id="day-lesson-count">3 занятия</strong><span>в расписании</span></div><div class="day-summary-separator"></div><div><strong id="day-duration">3 ч 40 мин</strong><span>учебного времени</span></div></div>
+            <div id="app" class="day-agenda" aria-live="polite"></div>
+            
+          </aside>
+        </section>
+
+        <footer class="page-footer"><span>КИТиС · неофициальный календарь для обучающихся</span><span>Данные среза: 16–22 ноября 2026 · <a href="https://github.com/RadarWeb/kitis-de-isr" target="_blank" rel="noreferrer">Исходный проект ↗</a></span></footer>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header"><div><span class="modal-eyebrow" id="modal-eyebrow">РАСПИСАНИЕ</span><h2 id="modal-title">Добавить занятие</h2></div><button class="icon-button" type="button" id="modal-close" aria-label="Закрыть">×</button></div>
+      <form id="lesson-form" class="modal-form">
+        <input type="hidden" id="lesson-id">
+        <div class="form-row"><label>Предмет<input id="lesson-subject" required maxlength="90" placeholder="Например, веб-разработка"></label></div>
+        <div class="form-grid"><label>День<select id="lesson-day" required></select></label><label>Номер пары<select id="lesson-badge"><option value="1">1 пара</option><option value="2">2 пара</option><option value="3">3 пара</option><option value="4">4 пара</option><option value="5">5 пара</option><option value="6">6 пара</option><option value="К">Кураторский час</option></select></label></div>
+        <div class="form-grid"><label>Начало<input id="lesson-start" type="time" required value="08:30"></label><label>Окончание<input id="lesson-end" type="time" required value="10:00"></label></div>
+        <div class="form-grid"><label>Преподаватель<input id="lesson-teacher" maxlength="70" placeholder="Фамилия И. О."></label><label>Аудитория<input id="lesson-room" maxlength="30" placeholder="Например, 403 или оставить пустым"></label></div>
+        <p class="form-hint">Личная запись видна только в твоём браузере и не меняет общее расписание группы.</p>
+        <div class="form-footer"><button class="secondary-button" type="button" id="lesson-delete" hidden>Удалить занятие</button><span class="form-spacer"></span><button class="secondary-button" type="button" id="modal-cancel">Отмена</button><button class="primary-button" type="submit">Сохранить</button></div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="group-modal-backdrop" hidden>
+    <section class="modal compact-modal" role="dialog" aria-modal="true" aria-labelledby="group-modal-title"><div class="modal-header"><div><span class="modal-eyebrow">УЧЕБНОЕ ПРОСТРАНСТВО</span><h2 id="group-modal-title">Новая группа</h2></div><button class="icon-button" id="group-modal-close" type="button" aria-label="Закрыть">×</button></div><form id="group-form" class="modal-form"><label>Название группы<input id="group-name" required maxlength="30" placeholder="Например, ИСр24-2"></label><p class="form-hint">Для новой группы создастся пустое расписание. Добавь занятия вручную — данные будут храниться в этом браузере.</p><div class="form-footer"><span class="form-spacer"></span><button class="secondary-button" type="button" id="group-cancel">Отмена</button><button class="primary-button" type="submit">Создать группу</button></div></form></section>
+  </div>
+
+
+  <div class="modal-backdrop settings-backdrop" id="settings-backdrop" hidden>
+    <section class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal-header">
+        <div><span class="modal-eyebrow">ПЕРСОНАЛИЗАЦИЯ</span><h2 id="settings-title">Внешний вид</h2><p class="settings-intro">Настрой интерфейс под себя. Изменения сохраняются автоматически.</p></div>
+        <button class="icon-button" type="button" id="settings-close" aria-label="Закрыть">×</button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title"><strong>Тема интерфейса</strong><span>Выбери режим</span></div>
+        <div class="theme-options" role="group" aria-label="Тема интерфейса">
+          <button type="button" class="theme-option" data-theme-choice="light" aria-pressed="true"><span class="theme-preview theme-preview-light"><i></i><i></i><i></i></span><strong>Светлая</strong><small>Чистая и воздушная</small></button>
+          <button type="button" class="theme-option" data-theme-choice="dark" aria-pressed="false"><span class="theme-preview theme-preview-dark"><i></i><i></i><i></i></span><strong>Тёмная</strong><small>Мягкая для глаз</small></button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title"><strong>Основная поверхность</strong><span id="surface-hint">Белая или мягко-серая</span></div>
+        <div class="surface-options" role="group" aria-label="Стиль поверхности">
+          <button type="button" class="surface-option" data-surface-choice="clean" aria-pressed="true"><span class="surface-swatch surface-clean"></span><span><strong id="surface-clean-label">Белая</strong><small>Чёткий контраст</small></span></button>
+          <button type="button" class="surface-option" data-surface-choice="soft" aria-pressed="false"><span class="surface-swatch surface-soft"></span><span><strong id="surface-soft-label">Светло-серая</strong><small>Спокойный фон</small></span></button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title"><strong>Акцентный цвет</strong><span>Оттенок интерфейса</span></div>
+        <div class="accent-palette" role="group" aria-label="Акцентный цвет">
+          <button type="button" class="accent-option" data-accent-choice="blue" aria-label="Классический синий" aria-pressed="true"><i style="--swatch:#3567e8"></i><span>Синий</span></button>
+          <button type="button" class="accent-option" data-accent-choice="sky" aria-label="Небесно-голубой" aria-pressed="false"><i style="--swatch:#159bd7"></i><span>Небесный</span></button>
+          <button type="button" class="accent-option" data-accent-choice="azure" aria-label="Лазурный" aria-pressed="false"><i style="--swatch:#2588f4"></i><span>Лазурный</span></button>
+          <button type="button" class="accent-option" data-accent-choice="indigo" aria-label="Индиго" aria-pressed="false"><i style="--swatch:#6865e8"></i><span>Индиго</span></button>
+          <button type="button" class="accent-option" data-accent-choice="cobalt" aria-label="Кобальтовый" aria-pressed="false"><i style="--swatch:#174fc5"></i><span>Кобальт</span></button>
+          <button type="button" class="accent-option" data-accent-choice="sapphire" aria-label="Сапфировый" aria-pressed="false"><i style="--swatch:#123e82"></i><span>Сапфир</span></button>
+          <button type="button" class="accent-option" data-accent-choice="graphite" aria-label="Графитовый" aria-pressed="false"><i style="--swatch:#4e596b"></i><span>Графит</span></button>
+        </div>
+      </div>
+      <div class="settings-bottom"><span class="settings-saved-dot"></span><span>Настройки сохраняются на этом устройстве</span><button type="button" id="settings-reset" class="settings-reset">Сбросить</button></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+</body>
+</html>

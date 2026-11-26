@@ -1,0 +1,57 @@
+/* Учебный срез расписания ИСр24-1 за 16–22 ноября 2026 года.
+   Данные доступны как window.SCHEDULE для учебных проверок проекта. */
+window.SCHEDULE = {
+  group: 'ИСр24-1',
+  weekLabel: '16–22 ноября 2026',
+  days: [
+    {
+      weekday: 'Понедельник', date: '2026-11-16', short: 'Пн',
+      lessons: [
+        { id: 'mon-k', badge: 'К', start: '08:30', end: '09:00', subject: 'Разговоры о важном', teacher: 'Шевченко П.С.', room: '203', color: '#78A6C8' },
+        { id: 'mon-1', badge: '1', start: '09:10', end: '10:30', subject: 'Графический дизайн и мультимедиа', teacher: 'Морылёв К.С.', room: '403', color: '#C4B478' },
+        { id: 'mon-2', badge: '2', start: '10:40', end: '12:00', subject: 'Графический дизайн и мультимедиа', teacher: 'Морылёв К.С.', room: '403', color: '#C4B478' }
+      ]
+    },
+    {
+      weekday: 'Вторник', date: '2026-11-17', short: 'Вт',
+      lessons: [
+        { id: 'tue-1', badge: '1', start: '08:30', end: '10:00', subject: 'Безопасность жизнедеятельности', teacher: 'Котельников А.М.', room: '201', color: '#8E9ACB' },
+        { id: 'tue-2', badge: '2', start: '10:10', end: '11:40', subject: 'Безопасность жизнедеятельности', teacher: 'Котельников А.М.', room: '201', color: '#8E9ACB' }
+      ]
+    },
+    {
+      weekday: 'Среда', date: '2026-11-18', short: 'Ср',
+      lessons: [
+        { id: 'wed-1', badge: '1', start: '08:30', end: '10:00', subject: 'Графический дизайн и мультимедиа', teacher: 'Морылёв К.С.', room: '403', color: '#C4B478' },
+        { id: 'wed-2', badge: '2', start: '10:10', end: '11:40', subject: 'Экономика отрасли', teacher: 'Брускина Н.И.', room: '109м', color: '#C478C2' },
+        { id: 'wed-3', badge: '3', start: '12:10', end: '13:40', subject: 'Физическая культура', teacher: 'Чертищев В.А.', room: 'Сп. зал 3', color: '#78B5C4' }
+      ]
+    },
+    {
+      weekday: 'Четверг', date: '2026-11-19', short: 'Чт',
+      lessons: [
+        { id: 'thu-1', badge: '1', start: '08:30', end: '10:00', subject: 'Проектирование и разработка веб-приложений', teacher: 'Громов Р.И.', room: null, color: '#7C9BCE' },
+        { id: 'thu-2', badge: '2', start: '10:10', end: '11:40', subject: 'Проектирование и разработка веб-приложений', teacher: 'Громов Р.И.', room: null, color: '#7C9BCE' },
+        { id: 'thu-3', badge: '3', start: '12:10', end: '13:40', subject: 'Проектирование и разработка веб-приложений', teacher: 'Громов Р.И.', room: null, color: '#7C9BCE' },
+        { id: 'thu-4', badge: '4', start: '13:50', end: '15:20', subject: 'Иностранный язык в профессиональной деятельности', teacher: 'Краснощекова В.В.', room: '112', color: '#D5A06F' }
+      ]
+    },
+    {
+      weekday: 'Пятница', date: '2026-11-20', short: 'Пт',
+      lessons: [
+        { id: 'fri-4', badge: '4', start: '13:50', end: '15:20', subject: 'Проектирование и разработка веб-приложений', teacher: 'Громов Р.И.', room: null, color: '#7C9BCE' },
+        { id: 'fri-5', badge: '5', start: '15:30', end: '17:00', subject: 'Проектирование и разработка веб-приложений', teacher: 'Громов Р.И.', room: null, color: '#7C9BCE' },
+        { id: 'fri-6', badge: '6', start: '17:10', end: '18:40', subject: 'Проектирование и разработка веб-приложений', teacher: 'Громов Р.И.', room: null, color: '#7C9BCE' }
+      ]
+    },
+    {
+      weekday: 'Суббота', date: '2026-11-21', short: 'Сб',
+      lessons: [
+        { id: 'sat-1', badge: '1', start: '08:30', end: '10:00', subject: 'Учебная практика 08', teacher: 'Морылёв К.С.', room: '403', color: '#7BAA91' },
+        { id: 'sat-2', badge: '2', start: '10:10', end: '11:40', subject: 'Учебная практика 08', teacher: 'Морылёв К.С.', room: '403', color: '#7BAA91' },
+        { id: 'sat-3', badge: '3', start: '12:10', end: '13:40', subject: 'Учебная практика 08', teacher: 'Морылёв К.С.', room: '403', color: '#7BAA91' }
+      ]
+    },
+    { weekday: 'Воскресенье', date: '2026-11-22', short: 'Вс', lessons: [] }
+  ]
+};
